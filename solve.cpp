@@ -52,7 +52,11 @@ void on_set(int i, int j) {
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    if(argc > 1) {
+        freopen(argv[1], "r", stdin);
+    }
+
     for(int i = 0; i < N; i++) {
         for(int j = 0; j < N; j++) {
             cin >> a[i][j];
