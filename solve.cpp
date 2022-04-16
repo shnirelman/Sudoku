@@ -52,6 +52,80 @@ void on_set(int i, int j) {
     }
 }
 
+bool find_unique() {
+    for(int x = 0; x < N; x++) {
+        for(int i = 0; i < N; i++) {
+            int cnt = 0, j1 = -1;
+            for(int j = 0; j < N && cnt < 2; j++) {
+                if(can[i][j] & (1 << x)) {
+                    if(a[i][j] != -1) {
+                        cnt = 2;
+                    } else {
+                        cnt++;
+                        j1 = j;
+                    }
+                }
+            }
+
+            if(cnt == 1) {
+                can[i][j1] = (1 << x);
+                try_set(i, j1, "by find unique");
+                return true;
+            }
+        }
+
+
+        for(int j = 0; j < N; j++) {
+            int cnt = 0, i1 = -1;
+            for(int i = 0; i < N && cnt < 2; i++) {
+                if(can[i][j] & (1 << x)) {
+                    if(a[i][j] != -1) {
+                        cnt = 2;
+                    } else {
+                        cnt++;
+                        i1 = i;
+                    }
+                }
+            }
+
+            if(cnt == 1) {
+                can[i1][j] = (1 << x);
+                try_set(i1, j, "by find unique");
+                return true;
+            }
+        }
+
+
+        for(int k1 = 0; k1 < 3; k1++) {
+            for(int k2 = 0; k2 < 3; k2++) {
+                int cnt = 0, i1 = -1, j1 = -1;
+                for(int i = k1 * 3; i < k1 * 3 + 3 && cnt < 2; i++) {
+                    for(int j = k2 * 3; j < k2 * 3 + 3 && cnt < 2; j++) {
+                        if(can[i][j] & (1 << x)) {
+                            if(a[i][j] != -1) {
+                                cnt = 2;
+                            } else {
+                                cnt++;
+                                i1 = i;
+                                j1 = j;
+                            }
+                        }
+                    }
+                }
+
+                if(cnt == 1) {
+                    can[i1][j1] = (1 << x);
+                    try_set(i1, j1, "by find unique");
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+
 int main(int argc, char* argv[]) {
     if(argc > 1) {
         freopen(argv[1], "r", stdin);
@@ -88,6 +162,9 @@ int main(int argc, char* argv[]) {
 
             on_set(i, j);
         }
+
+        if(find_unique())
+            continue;
 
         break;
     }
