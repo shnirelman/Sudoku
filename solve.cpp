@@ -125,6 +125,217 @@ bool find_unique() {
     return false;
 }
 
+bool find_unique_set() {
+    bool res = false;
+    for(int i = 0; i < N; i++) {
+        for(int mask = 1; mask < (1 << N); mask++) {
+            int msk = 0;
+            bool flag = false;
+            for(int j = 0; j < N; j++) {
+                if(mask & (1 << j)) {
+                    if(a[i][j] != -1) {
+                        flag = true;
+                        break;
+                    } else {
+                        msk |= can[i][j];
+                    }
+                }
+            }
+
+            if(flag)
+                continue;
+
+
+
+            if(__builtin_popcount(mask) == __builtin_popcount(msk)) {
+                for(int j = 0; j < N; j++) {
+                    if((mask & (1 << j)) == 0 && a[i][j] == -1) {
+                        int prev = can[i][j];
+                        can[i][j] &= (all ^ msk);
+                        res |= (prev != can[i][j]);
+                        try_set(i, j, "by group row");
+                    }
+                }
+            }
+        }
+    }
+
+    for(int j = 0; j < N; j++) {
+        for(int mask = 1; mask < (1 << N); mask++) {
+            int msk = 0;
+            bool flag = false;
+            for(int i = 0; i < N; i++) {
+                if(mask & (1 << i)) {
+                    if(a[i][j] != -1) {
+                        flag = true;
+                        break;
+                    } else {
+                        msk |= can[i][j];
+                    }
+                }
+            }
+
+            if(flag)
+                continue;
+
+
+
+            if(__builtin_popcount(mask) == __builtin_popcount(msk)) {
+                for(int i = 0; i < N; i++) {
+                    if((mask & (1 << i)) == 0 && a[i][j] == -1) {
+                        int prev = can[i][j];
+                        can[i][j] &= (all ^ msk);
+                        res |= (prev != can[i][j]);
+                        try_set(i, j, "by group column");
+                    }
+                }
+            }
+        }
+    }
+
+    for(int k1 = 0; k1 < 3; k1++) {
+        for(int k2 = 0; k2 < 3; k2++) {
+            for(int mask = 1; mask < (1 << N); mask++) {
+                int msk = 0;
+                bool flag = false;
+                for(int l = 0; l < N; l++) {
+                    if(mask & (1 << l)) {
+                        int i = k1 * 3 + l / 3;
+                        int j = k2 * 3 + l % 3;
+                        if(a[i][j] != -1) {
+                            flag = true;
+                            break;
+                        } else {
+                            msk |= can[i][j];
+                        }
+                    }
+                }
+
+                if(flag)
+                    continue;
+
+                if(__builtin_popcount(mask) == __builtin_popcount(msk)) {
+                    for(int l = 0; l < N; l++) {
+                        int i = k1 * 3 + l / 3;
+                        int j = k2 * 3 + l % 3;
+                        if((mask & (1 << l)) == 0 && a[i][j] == -1) {
+                            int prev = can[i][j];
+                            can[i][j] &= (all ^ msk);
+                            res |= (prev != can[i][j]);
+                            try_set(i, j, "by group square");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+bool find_unique_set_in_two() {
+    bool res = false;
+    for(int x = 0; x < N; x++) {
+        for(int k1 = 0; k1 < 3; k1++) {
+            for(int k2 = 0; k2 < 3; k2++) {
+                set<pii> posi, posj;
+                bool flag = false;
+                for(int i = k1 * 3; i < k1 * 3 + 3 && !flag; i++) {
+                    for(int j = k2 * 3; j < k2 * 3 + 3 && !flag; j++) {
+                        if(a[i][j] == x)
+                            flag = true;
+                        else if(a[i][j] == -1 && (can[i][j] & (1 << x))) {
+                            posi.emplace(i, j);
+                            posj.emplace(j, i);
+                        }
+                    }
+                }
+
+
+                if(flag)
+                    continue;
+
+                if(!posi.empty() && posi.begin()->f == prev(posi.end())->f) {
+                    int i = posi.begin()->f;
+                    for(int j = 0; j < N; j++) if(a[i][j] == -1 && (can[i][j] & (1 << x))) {
+                        if(j < k2 * 3 || j >= k2 * 3 + 3) {
+                            can[i][j] ^= (1 << x);
+                            res = true;
+                            try_set(i, j, "by two groups");
+                        }
+                    }
+                }
+
+                if(!posj.empty() && posj.begin()->f == prev(posj.end())->f) {
+                    int j = posj.begin()->f;
+
+                    for(int i = 0; i < N; i++) if(a[i][j] == -1 && (can[i][j] & (1 << x))) {
+                        if(i < k1 * 3 || i >= k1 * 3 + 3) {
+                            can[i][j] ^= (1 << x);
+                            res = true;
+                            try_set(i, j, "by two groups");
+                        }
+                    }
+                }
+
+                if(res)
+                    return res;
+            }
+        }
+
+        for(int i = 0; i < N; i++) {
+            set<int> pos;
+            bool flag = false;
+            for(int j = 0; j < N && !flag; j++) {
+                if(a[i][j] == x)
+                    flag = true;
+                else if(a[i][j] == -1 && (can[i][j] & (1 << x)))
+                    pos.insert(j);
+            }
+
+            if(flag)
+                continue;
+
+            if(!pos.empty() && *pos.begin() / 3 == *pos.rbegin() / 3) {
+                int k = *pos.begin() / 3;
+                for(int j = 0; j < N; j++) {
+                    if(a[i][j] == -1 && (can[i][j] & (1 << x)) && (j < k * 3 || j >= k * 3 + 3)) {
+                        can[i][j] ^= (1 << x);
+                        res = true;
+                        try_set(i, j, "by two groups");
+                    }
+                }
+            }
+        }
+
+        for(int j = 0; j < N; j++) {
+            set<int> pos;
+            bool flag = false;
+            for(int i = 0; i < N && !flag; i++) {
+                if(a[i][j] == x)
+                    flag = true;
+                else if(a[i][j] == -1 && (can[i][j] & (1 << x)))
+                    pos.insert(i);
+            }
+
+            if(flag)
+                continue;
+
+            if(!pos.empty() && *pos.begin() / 3 == *pos.rbegin() / 3) {
+                int k = *pos.begin() / 3;
+                for(int i = 0; i < N; i++) {
+                    if(a[i][j] == -1 && (can[i][j] & (1 << x)) && (i < k * 3 || i >= k * 3 + 3)) {
+                        can[i][j] ^= (1 << x);
+                        res = true;
+                        try_set(i, j, "by two groups");
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
 
 int main(int argc, char* argv[]) {
     if(argc > 1) {
@@ -164,6 +375,12 @@ int main(int argc, char* argv[]) {
         }
 
         if(find_unique())
+            continue;
+
+        if(find_unique_set())
+            continue;
+
+        if(find_unique_set_in_two())
             continue;
 
         break;
