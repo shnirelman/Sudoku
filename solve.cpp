@@ -337,6 +337,45 @@ bool find_unique_set_in_two() {
     return res;
 }
 
+bool check_correctness() {
+    for(int i = 0; i < N; i++) {
+        set<int> st;
+        for(int j = 0; j < N; j++)
+            if(a[i][j] != -1) {
+                if(st.count(a[i][j]))
+                    return false;
+                st.insert(a[i][j]);
+            }
+    }
+
+    for(int j = 0; j < N; j++) {
+        set<int> st;
+        for(int i = 0; i < N; i++)
+            if(a[i][j] != -1) {
+                if(st.count(a[i][j]))
+                    return false;
+                st.insert(a[i][j]);
+            }
+    }
+
+    for(int k1 = 0; k1 < 3; k1++) {
+        for(int k2 = 0; k2 < 3; k2++) {
+            set<int> st;
+            for(int i = k1 * 3; i < k1 * 3 + 3; i++) {
+                for(int j = k2 * 3; j < k2 * 3 + 3; j++) {
+                    if(a[i][j] != -1) {
+                        if(st.count(a[i][j]))
+                            return false;
+                        st.insert(a[i][j]);
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 int main(int argc, char* argv[]) {
     if(argc > 1) {
         freopen(argv[1], "r", stdin);
@@ -386,7 +425,7 @@ int main(int argc, char* argv[]) {
         break;
     }
 
-    if(unknown > 0)
+    if(unknown > 0 || !check_correctness())
         cout << "Can't solve" << endl;
 
     for(int i = 0; i < N; i++) {
