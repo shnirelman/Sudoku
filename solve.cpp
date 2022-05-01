@@ -376,6 +376,82 @@ bool check_correctness() {
     return true;
 }
 
+bool solve(int depth) {
+    while(unknown > 0) {
+        while(!q.empty()) {
+            int i = q.front().f, j = q.front().s;
+            q.pop();
+
+            on_set(i, j);
+        }
+
+        if(find_unique())
+            continue;
+
+        if(find_unique_set())
+            continue;
+
+        if(find_unique_set_in_two())
+            continue;
+
+        break;
+    }
+
+    if(!check_correctness())
+        return false;
+
+    if(unknown == 0)
+        return true;
+
+    vector<vector<int>> a1(N, vector<int>(N)), can1(N, vector<int>(N));
+    int unknown1 = unknown;
+    pii next;
+    int mn = N + 1;
+    for(int i = 0; i < N; i++) {
+        for(int j = 0; j < N; j++) {
+            a1[i][j] = a[i][j];
+            can1[i][j] = can[i][j];
+            if(a[i][j] == -1 && mn > __builtin_popcount(can[i][j])) {
+                next = {i, j};
+                mn = __builtin_popcount(can[i][j]);
+            }
+        }
+    }
+
+    int i = next.f, j = next.s;
+
+    int msk = can[i][j];
+    for(int x = 0; x < N; x++) {
+        if(msk & (1 << x)) {
+            can[i][j] = (1 << x);
+            try_set(i, j, "surplus");
+
+            solve(depth + 1);
+            if(unknown == 0 && check_correctness())
+                return true;
+
+            for(int i = 0; i < N; i++) {
+                for(int j = 0; j < N; j++) {
+                    can[i][j] = can1[i][j];
+                    a[i][j] = a1[i][j];
+                }
+            }
+            while(!q.empty())
+                q.pop();
+            unknown = unknown1;
+        }
+    }
+
+    for(int i = 0; i < N; i++) {
+        for(int j = 0; j < N; j++) {
+            can[i][j] = can1[i][j];
+            a[i][j] = a1[i][j];
+        }
+    }
+
+    return false;
+}
+
 int main(int argc, char* argv[]) {
     if(argc > 1) {
         freopen(argv[1], "r", stdin);
@@ -401,31 +477,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
-
     for(int i = 0; i < N; i++)
         pw2[1 << i] = i;
 
-    while(unknown > 0) {
-        while(!q.empty()) {
-            int i = q.front().f, j = q.front().s;
-            q.pop();
-
-            on_set(i, j);
-        }
-
-        if(find_unique())
-            continue;
-
-        if(find_unique_set())
-            continue;
-
-        if(find_unique_set_in_two())
-            continue;
-
-        break;
-    }
-
-    if(unknown > 0 || !check_correctness())
+    if(!solve(0))
         cout << "Can't solve" << endl;
 
     for(int i = 0; i < N; i++) {
